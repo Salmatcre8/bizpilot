@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizPilot — AI Business OS for SMEs</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --opay-green: #00C27A;
+  --opay-dark: #210F60;
+  --opay-green-light: #E1F9F0;
+  --opay-green-mid: #00A368;
+  --bg: #F4F6FA;
+  --surface: #FFFFFF;
+  --border: #E4E8EF;
+  --text: #111827;
+  --muted: #6B7280;
+  --danger: #E24B4A;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+  --wa-green: #075E54;
+  --wa-light: #25D366;
+  --wa-bubble-out: #DCF8C6;
+  --wa-bubble-in: #FFFFFF;
+  --wa-bg: #ECE5DD;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+/* NAV */
+.nav { background: var(--opay-dark); color: white; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+.nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+.nav-logo-dot { width: 28px; height: 28px; background: var(--opay-green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white; }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab { padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.65); border: none; background: none; transition: all 0.15s; font-weight: 500; }
+.nav-tab:hover { color: white; background: rgba(255,255,255,0.08); }
+.nav-tab.active { color: white; background: var(--opay-green); }
+.nav-badge { background: var(--opay-green); color: white; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px; margin-left: 4px; }
+
+/* LAYOUT */
+.main { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* CARDS */
+.card { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); padding: 1.25rem; }
+.card-sm { padding: 1rem; }
+
+/* METRIC CARDS */
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
+.metric-card { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); padding: 1.1rem 1.25rem; }
+.metric-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.03em; margin-bottom: 4px; }
+.metric-value { font-size: 24px; font-weight: 700; color: var(--text); line-height: 1.1; }
+.metric-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.metric-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+
+/* SECTION HEADER */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.section-title { font-size: 16px; font-weight: 600; color: var(--text); }
+.section-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+.pill-green { background: var(--opay-green-light); color: var(--opay-green-mid); }
+.pill-warn { background: #FEF3C7; color: #92400E; }
+.pill-danger { background: #FEE2E2; color: #991B1B; }
+.pill-blue { background: #EFF6FF; color: #1D4ED8; }
+.pill-purple { background: #EDE9FE; color: #5B21B6; }
+
+/* WHATSAPP PANEL */
+.wa-layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; height: calc(100vh - 120px); min-height: 600px; }
+.wa-phone { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; }
+.wa-header { background: var(--wa-green); color: white; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+.wa-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--wa-light); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.wa-contact-name { font-size: 14px; font-weight: 600; }
+.wa-contact-status { font-size: 11px; opacity: 0.8; }
+.wa-messages { flex: 1; overflow-y: auto; padding: 12px; background: var(--wa-bg); display: flex; flex-direction: column; gap: 8px; }
+.wa-msg { max-width: 85%; padding: 8px 10px 4px; border-radius: 8px; font-size: 13px; line-height: 1.4; position: relative; }
+.wa-msg-out { background: var(--wa-bubble-out); align-self: flex-end; border-radius: 8px 0 8px 8px; }
+.wa-msg-in { background: var(--wa-bubble-in); align-self: flex-start; border-radius: 0 8px 8px 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.wa-time { font-size: 10px; color: var(--muted); text-align: right; margin-top: 2px; }
+.wa-input-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: #F0F2F5; border-top: 1px solid var(--border); }
+.wa-input { flex: 1; padding: 8px 14px; border-radius: 20px; border: none; background: white; font-size: 13px; outline: none; }
+.wa-send-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--wa-green); border: none; color: white; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+
+/* BizPilot reply card */
+.bp-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 10px; margin-top: 4px; font-size: 12px; }
+.bp-card-title { font-weight: 600; font-size: 12px; color: var(--opay-dark); margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.bp-card-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #F3F4F6; }
+.bp-card-row:last-child { border-bottom: none; }
+.bp-card-key { color: var(--muted); }
+.bp-card-val { font-weight: 600; }
+.bp-link-btn { display: block; margin-top: 8px; background: var(--opay-green); color: white; text-align: center; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; width: 100%; }
+.bp-alert { display: flex; align-items: center; gap: 6px; background: #FEF3C7; border-radius: 8px; padding: 6px 8px; margin-top: 6px; font-size: 11px; color: #92400E; font-weight: 500; }
+
+/* RIGHT PANEL (INSIGHTS) */
+.insights-panel { overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding-right: 4px; }
+.insight-item { display: flex; align-items: flex-start; gap: 10px; }
+.insight-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.insight-text { font-size: 13px; }
+.insight-text strong { display: block; font-weight: 600; margin-bottom: 2px; }
+
+/* DASHBOARD GRID */
+.dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.dash-grid .full { grid-column: 1 / -1; }
+
+/* TABLE */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; padding: 8px 12px; background: #F9FAFB; border-bottom: 1px solid var(--border); }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid #F3F4F6; font-size: 13px; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #FAFAFA; }
+
+/* CUSTOMER LEDGER */
+.customer-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; cursor: pointer; }
+.customer-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+.customer-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.customer-info { flex: 1; }
+.customer-name { font-weight: 600; font-size: 14px; }
+.customer-meta { font-size: 12px; color: var(--muted); }
+.customer-stats { text-align: right; }
+.customer-amount { font-weight: 700; font-size: 14px; }
+.customer-detail { display: none; border-top: 1px solid var(--border); padding: 12px 16px; background: #FAFAFA; }
+.customer-detail.open { display: block; }
+.purchase-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 12px; }
+.purchase-item:last-child { border-bottom: none; }
+
+/* DIGEST PANEL */
+.digest-card { background: linear-gradient(135deg, var(--opay-dark) 0%, #3C1FA0 100%); color: white; border-radius: 16px; padding: 1.5rem; margin-bottom: 14px; }
+.digest-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.digest-icon { font-size: 28px; }
+.digest-title { font-size: 18px; font-weight: 700; }
+.digest-date { font-size: 12px; opacity: 0.7; }
+.digest-body { font-size: 13px; line-height: 1.7; opacity: 0.92; }
+.digest-insight { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; margin-top: 10px; font-size: 13px; }
+.digest-insight-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; margin-bottom: 3px; }
+.digest-insight-val { font-weight: 600; }
+.regen-btn { background: var(--opay-green); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.regen-btn:hover { background: var(--opay-green-mid); }
+.regen-btn:disabled { opacity: 0.6; cursor: wait; }
+
+/* LOADING */
+.typing-indicator { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: white; border-radius: 0 10px 10px 10px; align-self: flex-start; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: bounce 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* STATUS DOTS */
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.dot-green { background: var(--opay-green); }
+.dot-warn { background: var(--warning); }
+.dot-red { background: var(--danger); }
+
+/* HIGHLIGHT UPDATED */
+@keyframes flashUpdate { 0% { background: #E1F9F0; } 100% { background: transparent; } }
+.flash { animation: flashUpdate 1s ease-out; }
+
+/* PROGRESS BAR */
+.progress-bar-bg { background: #F3F4F6; border-radius: 999px; height: 6px; }
+.progress-bar-fill { height: 100%; border-radius: 999px; background: var(--opay-green); transition: width 0.5s; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .wa-layout { grid-template-columns: 1fr; height: auto; }
+  .insights-panel { display: none; }
+  .dash-grid { grid-template-columns: 1fr; }
+  .nav-tabs { gap: 2px; }
+  .nav-tab { padding: 5px 9px; font-size: 11px; }
+  .main { padding: 1rem; }
+}
+
+.chart-wrap { position: relative; height: 200px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-dot">B</div>
+    BizPilot
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchPanel('chat')">💬 Chat</button>
+    <button class="nav-tab" onclick="switchPanel('dashboard')">📊 Dashboard</button>
+    <button class="nav-tab" onclick="switchPanel('customers')">👥 Customers</button>
+    <button class="nav-tab" onclick="switchPanel('digest')">🤖 AI Digest</button>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- PANEL 1: WHATSAPP CHAT -->
+<div class="panel active" id="panel-chat">
+  <div class="wa-layout">
+    <!-- Phone mock -->
+    <div class="wa-phone">
+      <div class="wa-header">
+        <div class="wa-avatar">BP</div>
+        <div>
+          <div class="wa-contact-name">BizPilot AI</div>
+          <div class="wa-contact-status">● Online — your business assistant</div>
+        </div>
+      </div>
+      <div class="wa-messages" id="wa-messages">
+        <!-- seeded messages rendered by JS -->
+      </div>
+      <div class="wa-input-row">
+        <input class="wa-input" id="wa-input" placeholder="Type a sale message..." onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button class="wa-send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+
+    <!-- Right panel: live insights -->
+    <div style="display:flex; flex-direction:column; gap:14px; overflow-y:auto;">
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">How to use BizPilot</div>
+            <div class="section-sub">Type any natural sales message</div>
+          </div>
+          <span class="pill pill-green">⚡ Smart Parser</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--muted);">
+          <div style="background:#F9FAFB; border-radius:10px; padding:10px 12px; border-left:3px solid var(--opay-green);">
+            "Sold 2 ankara bags to Chioma for ₦8,500 each, she paid in full"
+          </div>
+          <div style="background:#F9FAFB; border-radius:10px; padding:10px 12px; border-left:3px solid var(--opay-green);">
+            "Mrs. Eze bought 1 lace gown ₦15,000 she paid ₦7,000 deposit"
+          </div>
+          <div style="background:#F9FAFB; border-radius:10px; padding:10px 12px; border-left:3px solid var(--opay-green);">
+            "Sold 5 scrunchies to Fatima ₦500 each cash"
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="margin-bottom:12px;">Today's snapshot</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="metric-card card-sm">
+            <div class="metric-label">Sales today</div>
+            <div class="metric-value" id="snap-sales" style="font-size:18px;">₦0</div>
+          </div>
+          <div class="metric-card card-sm">
+            <div class="metric-label">Transactions</div>
+            <div class="metric-value" id="snap-count" style="font-size:18px;">0</div>
+          </div>
+          <div class="metric-card card-sm">
+            <div class="metric-label">Pending</div>
+            <div class="metric-value" id="snap-pending" style="font-size:18px; color:var(--warning);">₦0</div>
+          </div>
+          <div class="metric-card card-sm">
+            <div class="metric-label">Collected</div>
+            <div class="metric-value" id="snap-collected" style="font-size:18px; color:var(--opay-green);">₦0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="live-alerts" style="display:none;">
+        <div class="section-title" style="margin-bottom:10px;">⚠️ Live alerts</div>
+        <div id="alerts-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL 2: DASHBOARD -->
+<div class="panel" id="panel-dashboard">
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-icon" style="background:#E1F9F0;">💰</div>
+      <div class="metric-label">Total sales today</div>
+      <div class="metric-value" id="d-total">₦127,500</div>
+      <div class="metric-sub">↑ 18% vs yesterday</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon" style="background:#FEF3C7;">⏳</div>
+      <div class="metric-label">Pending payments</div>
+      <div class="metric-value" id="d-pending" style="color:var(--warning);">₦43,000</div>
+      <div class="metric-sub" id="d-pending-sub">3 customers owe</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon" style="background:#EDE9FE;">📦</div>
+      <div class="metric-label">Low stock items</div>
+      <div class="metric-value" id="d-lowstock" style="color:var(--danger);">4</div>
+      <div class="metric-sub">Need restocking</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon" style="background:#ECFDF5;">💳</div>
+      <div class="metric-label">Cash flow score</div>
+      <div class="metric-value" id="d-cashscore" style="color:var(--opay-green);">72 / 100</div>
+      <div class="metric-sub">Stable this week</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="card full">
+      <div class="section-header">
+        <div><div class="section-title">7-day revenue</div><div class="section-sub">Naira collected</div></div>
+        <span class="pill pill-green">This week</span>
+      </div>
+      <div class="chart-wrap"><canvas id="revenue-chart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <div><div class="section-title">Inventory</div></div>
+        <span class="pill pill-warn">4 low</span>
+      </div>
+      <table class="data-table" id="inventory-table">
+        <thead><tr><th>Product</th><th>Stock</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="section-header">
+        <div><div class="section-title">Top sellers</div><div class="section-sub">By revenue this week</div></div>
+      </div>
+      <div id="top-sellers" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL 3: CUSTOMERS -->
+<div class="panel" id="panel-customers">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+    <div>
+      <div class="section-title" style="font-size:18px;">Customer ledger</div>
+      <div style="font-size:13px; color:var(--muted); margin-top:2px;">Click a customer to see their history</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <span class="pill pill-purple">👑 <span id="vip-count">2</span> VIP</span>
+      <span class="pill pill-danger">⚠️ <span id="owe-count">3</span> owe</span>
+    </div>
+  </div>
+  <div id="customer-list"></div>
+</div>
+
+<!-- PANEL 4: AI DIGEST -->
+<div class="panel" id="panel-digest">
+  <div class="digest-card">
+    <div class="digest-header">
+      <div class="digest-icon">🤖</div>
+      <div>
+        <div class="digest-title">Weekly AI Business Digest</div>
+        <div class="digest-date" id="digest-date"></div>
+      </div>
+    </div>
+    <div class="digest-body" id="digest-body">
+      Your fashion business had a strong week. Lace gowns remain your top revenue driver, contributing 38% of total sales. However, Ankara print skirts are moving slowly — consider a 10–15% weekend promo to clear stock before restocking. You have ₦43,000 in outstanding payments across 3 customers; chasing Mrs. Bello's ₦18,000 balance first would have the most immediate impact on your cash position. At your current pace, projected cash inflow over the next 7 days is approximately ₦95,000 — healthy, but your restock costs for lace fabric due next week total an estimated ₦60,000. Plan ahead.
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:14px;">
+      <div class="digest-insight">
+        <div class="digest-insight-label">Best seller</div>
+        <div class="digest-insight-val" id="di-best">Lace gowns</div>
+      </div>
+      <div class="digest-insight">
+        <div class="digest-insight-label">Slow mover</div>
+        <div class="digest-insight-val" id="di-slow">Ankara skirts</div>
+      </div>
+      <div class="digest-insight">
+        <div class="digest-insight-label">Cash alert</div>
+        <div class="digest-insight-val" id="di-cash">₦43k owed</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div class="section-header">
+      <div><div class="section-title">Cash flow forecast</div><div class="section-sub">Next 4 weeks projection</div></div>
+      <span class="pill pill-green">Stable</span>
+    </div>
+    <div class="chart-wrap"><canvas id="cashflow-chart"></canvas></div>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <button class="regen-btn" id="regen-btn" onclick="regenerateDigest()">
+      <span id="regen-icon">✨</span> Regenerate digest
+    </button>
+    <div style="font-size:12px; color:var(--muted);">Rule-based AI Engine — uses your live dashboard data</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ===================== DATA STATE =====================
+const state = {
+  todaySales: 127500,
+  todayCollected: 84500,
+  todayPending: 43000,
+  txCount: 8,
+  newSales: 0,
+  newPending: 0,
+  newCollected: 0,
+  newTxCount: 0,
+};
+
+const inventory = [
+  { name: "Lace gowns", stock: 2, threshold: 5, sold: 18 },
+  { name: "Ankara print skirts", stock: 11, threshold: 8, sold: 6 },
+  { name: "Aso-ebi fabric (yard)", stock: 3, threshold: 10, sold: 22 },
+  { name: "Beaded handbags", stock: 1, threshold: 4, sold: 9 },
+  { name: "Satin blouses", stock: 7, threshold: 5, sold: 14 },
+  { name: "Headties (gele)", stock: 4, threshold: 6, sold: 11 },
+  { name: "Sequin tops", stock: 9, threshold: 5, sold: 7 },
+  { name: "Silk scarves", stock: 2, threshold: 3, sold: 5 },
+];
+
+const customers = [
+  { id: "bello", name: "Mrs. Bello", initials: "MB", color: "#7C3AED", totalSpent: 84000, outstanding: 18000, lastPurchase: "Today", vip: true, purchases: [
+    { date: "Today", item: "Lace gowns × 3", amount: 36000, paid: 18000, status: "partial" },
+    { date: "Jun 7", item: "Aso-ebi fabric × 5 yds", amount: 30000, paid: 30000, status: "paid" },
+    { date: "May 28", item: "Beaded handbag × 2", amount: 18000, paid: 18000, status: "paid" },
+  ]},
+  { id: "chioma", name: "Chioma Okafor", initials: "CO", color: "#059669", totalSpent: 67500, outstanding: 0, lastPurchase: "Jun 11", vip: true, purchases: [
+    { date: "Jun 11", item: "Satin blouse × 3", amount: 22500, paid: 22500, status: "paid" },
+    { date: "Jun 4", item: "Ankara skirts × 2", amount: 15000, paid: 15000, status: "paid" },
+    { date: "May 20", item: "Lace gown × 2", amount: 30000, paid: 30000, status: "paid" },
+  ]},
+  { id: "fatima", name: "Fatima Aliyu", initials: "FA", color: "#D97706", totalSpent: 29000, outstanding: 12000, lastPurchase: "Jun 12", vip: false, purchases: [
+    { date: "Jun 12", item: "Sequin top × 2", amount: 20000, paid: 8000, status: "partial" },
+    { date: "Jun 1", item: "Silk scarf × 2", amount: 9000, paid: 9000, status: "paid" },
+  ]},
+  { id: "eze", name: "Mrs. Eze", initials: "ME", color: "#DC2626", totalSpent: 45000, outstanding: 8000, lastPurchase: "Jun 10", vip: false, purchases: [
+    { date: "Jun 10", item: "Headtie (gele) × 4", amount: 20000, paid: 12000, status: "partial" },
+    { date: "May 25", item: "Lace gown × 1", amount: 25000, paid: 25000, status: "paid" },
+  ]},
+  { id: "amaka", name: "Amaka Nwosu", initials: "AN", color: "#0369A1", totalSpent: 18500, outstanding: 0, lastPurchase: "Jun 9", vip: false, purchases: [
+    { date: "Jun 9", item: "Satin blouse × 1", amount: 7500, paid: 7500, status: "paid" },
+    { date: "Jun 2", item: "Silk scarf × 1", amount: 4500, paid: 4500, status: "paid" },
+    { date: "May 18", item: "Ankara skirt × 1", amount: 6500, paid: 6500, status: "paid" },
+  ]},
+];
+
+const revenueData = [62000, 88500, 54000, 115000, 99000, 78000, 127500];
+const revenueLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Today"];
+
+// ===================== PANEL SWITCHING =====================
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ===================== WHATSAPP CHAT =====================
+const seedMessages = [
+  { out: true, text: "Sold 3 lace gowns to Mrs. Bello, ₦12,000 each, she paid half now." },
+  { out: false, card: true, data: {
+    title: "✅ Sale logged",
+    rows: [
+      { k: "Customer", v: "Mrs. Bello" },
+      { k: "Items", v: "Lace gowns × 3" },
+      { k: "Total", v: "₦36,000" },
+      { k: "Paid", v: "₦18,000" },
+      { k: "Pending", v: "₦18,000" },
+      { k: "Status", v: "🟡 Partial" },
+    ],
+    alert: "⚠️ Only 2 lace gowns left in stock",
+    link: "Send ₦18,000 payment link"
+  }},
+  { out: true, text: "Also sold 2 satin blouses to Amaka ₦7,500 each, she paid fully." },
+  { out: false, card: true, data: {
+    title: "✅ Sale logged",
+    rows: [
+      { k: "Customer", v: "Amaka" },
+      { k: "Items", v: "Satin blouses × 2" },
+      { k: "Total", v: "₦15,000" },
+      { k: "Paid", v: "₦15,000" },
+      { k: "Status", v: "🟢 Fully paid" },
+    ],
+    link: "View invoice"
+  }},
+];
+
+function renderMessage(msg, animate) {
+  const wrap = document.getElementById('wa-messages');
+  const el = document.createElement('div');
+  el.style.cssText = animate ? 'opacity:0; transform:translateY(8px); transition:all 0.25s;' : '';
+
+  if (msg.out) {
+    el.innerHTML = `<div class="wa-msg wa-msg-out">${msg.text}<div class="wa-time">${now()}</div></div>`;
+    el.style.alignSelf = 'flex-end'; el.style.display = 'flex'; el.style.flexDirection = 'column'; el.style.alignItems = 'flex-end';
+  } else if (msg.card) {
+    const d = msg.data;
+    const rows = d.rows.map(r => `<div class="bp-card-row"><span class="bp-card-key">${r.k}</span><span class="bp-card-val">${r.v}</span></div>`).join('');
+    const alert = d.alert ? `<div class="bp-alert">⚠️ ${d.alert}</div>` : '';
+    el.innerHTML = `<div class="wa-msg wa-msg-in" style="max-width:90%;">
+      <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">BizPilot AI</div>
+      <div class="bp-card">
+        <div class="bp-card-title">🤖 ${d.title}</div>
+        ${rows}
+        ${alert}
+        <button class="bp-link-btn">${d.link}</button>
+      </div>
+      <div class="wa-time">${now()}</div>
+    </div>`;
+  } else {
+    el.innerHTML = `<div class="wa-msg wa-msg-in"><div style="font-size:11px; color:var(--muted); margin-bottom:2px;">BizPilot AI</div>${msg.text}<div class="wa-time">${now()}</div></div>`;
+  }
+
+  wrap.appendChild(el);
+  if (animate) requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'none'; });
+  wrap.scrollTop = wrap.scrollHeight;
+  return el;
+}
+
+function now() {
+  return new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' });
+}
+
+function showTyping() {
+  const wrap = document.getElementById('wa-messages');
+  const el = document.createElement('div');
+  el.id = 'typing-bubble';
+  el.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  wrap.appendChild(el);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+function removeTyping() { const el = document.getElementById('typing-bubble'); if (el) el.remove(); }
+
+// ===================== MOCK AI PARSER (Smart Parser Engine) =====================
+function parseSaleMessage(text) {
+  const t = text.toLowerCase();
+
+  // --- Extract customer name ---
+  let customer_name = "Customer";
+  const namePatterns = [
+    /(?:to|for)\s+(mrs?\.?\s+\w+(?:\s+\w+)?)/i,
+    /(?:to|for)\s+(\w+(?:\s+\w+)?)\s+(?:₦|for|at)/i,
+    /^(\w+(?:\s+\w+)?)\s+(?:bought|ordered|got|paid)/i,
+  ];
+  for (const p of namePatterns) {
+    const m = text.match(p);
+    if (m) { customer_name = m[1].trim(); break; }
+  }
+
+  // --- Extract product & quantity ---
+  const productMap = {
+    "lace gown": "Lace gowns", "lace": "Lace gowns",
+    "ankara": "Ankara print skirts", "ankara skirt": "Ankara print skirts",
+    "satin blouse": "Satin blouses", "blouse": "Satin blouses",
+    "aso-ebi": "Aso-ebi fabric (yard)", "aso ebi": "Aso-ebi fabric (yard)", "asoebi": "Aso-ebi fabric (yard)",
+    "beaded bag": "Beaded handbags", "handbag": "Beaded handbags", "bag": "Beaded handbags",
+    "headtie": "Headties (gele)", "gele": "Headties (gele)",
+    "sequin": "Sequin tops", "sequin top": "Sequin tops",
+    "scarf": "Silk scarves", "silk scarf": "Silk scarves",
+    "scrunchie": "Scrunchies", "scrunchies": "Scrunchies",
+  };
+
+  let product = "Item";
+  for (const [key, val] of Object.entries(productMap)) {
+    if (t.includes(key)) { product = val; break; }
+  }
+
+  const qtyMatch = t.match(/(\d+)\s*(?:piece|pcs|unit|yard|gown|bag|blouse|top|scarf|skirt|headtie|gele|scrunchie)?s?\b/);
+  const quantity = qtyMatch ? parseInt(qtyMatch[1]) : 1;
+
+  // --- Extract prices (₦ or plain numbers) ---
+  const priceMatches = [...text.matchAll(/₦\s*(\d[\d,]*)/g)].map(m => parseInt(m[1].replace(/,/g, '')));
+  const plainNumbers = [...text.matchAll(/(\d{3,})/g)].map(m => parseInt(m[1])).filter(n => n >= 500);
+
+  const allNums = priceMatches.length ? priceMatches : plainNumbers;
+
+  let unit_price = 0, total_amount = 0, amount_paid = 0;
+
+  if (allNums.length >= 2) {
+    // e.g. "₦12,000 each, paid ₦18,000" → unit + total paid
+    unit_price = allNums[0];
+    const computed = unit_price * quantity;
+    // Check if second number looks like a total or paid amount
+    if (allNums[1] >= computed * 0.9) {
+      total_amount = computed;
+      amount_paid = allNums[1];
+    } else {
+      total_amount = computed;
+      amount_paid = allNums[1];
+    }
+  } else if (allNums.length === 1) {
+    unit_price = allNums[0];
+    total_amount = unit_price * quantity;
+    amount_paid = total_amount;
+  }
+
+  if (!total_amount) total_amount = unit_price * quantity;
+
+  // --- Payment keywords ---
+  const isFullyPaid = /\b(full|fully|cash|complete|cleared|settled|all paid|paid in full|100%)\b/.test(t);
+  const isHalf = /\b(half|50%|deposit)\b/.test(t);
+  const isUnpaid = /\b(owe|credit|no pay|nothing|zero|hasn.t paid)\b/.test(t);
+
+  if (isFullyPaid) {
+    amount_paid = total_amount;
+  } else if (isHalf) {
+    amount_paid = Math.round(total_amount / 2);
+  } else if (isUnpaid) {
+    amount_paid = 0;
+  } else if (amount_paid === 0 && total_amount > 0) {
+    amount_paid = total_amount; // default: assume paid
+  }
+
+  if (amount_paid > total_amount) amount_paid = total_amount;
+
+  const payment_status = amount_paid >= total_amount ? "paid" : amount_paid > 0 ? "partial" : "unpaid";
+
+  // --- Low stock warning ---
+  let low_stock_warning = null;
+  const invItem = inventory.find(i => i.name === product);
+  if (invItem) {
+    const remaining = invItem.stock - quantity;
+    if (remaining <= invItem.threshold) {
+      low_stock_warning = `Only ${Math.max(0, remaining)} ${product} left in stock — consider restocking`;
+    }
+  }
+
+  return {
+    customer_name,
+    items: [{ product, quantity, unit_price }],
+    total_amount,
+    amount_paid,
+    payment_status,
+    low_stock_warning,
+  };
+}
+
+function updateInventoryFromSale(product, quantity) {
+  const item = inventory.find(i => i.name === product);
+  if (item) {
+    item.stock = Math.max(0, item.stock - quantity);
+    item.sold += quantity;
+  }
+}
+
+function addOrUpdateCustomer(name, total, paid, product, quantity) {
+  const pending = total - paid;
+  const existing = customers.find(c => c.name.toLowerCase() === name.toLowerCase());
+  const today = new Date().toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
+
+  const purchase = {
+    date: "Today",
+    item: `${product} × ${quantity}`,
+    amount: total,
+    paid,
+    status: paid >= total ? "paid" : "partial",
+  };
+
+  if (existing) {
+    existing.totalSpent += total;
+    existing.outstanding += pending;
+    existing.lastPurchase = "Today";
+    existing.purchases.unshift(purchase);
+    if (existing.totalSpent >= 50000) existing.vip = true;
+  } else {
+    customers.unshift({
+      id: name.toLowerCase().replace(/\s+/g, '-') + Date.now(),
+      name,
+      initials: name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2),
+      color: ["#7C3AED","#059669","#D97706","#DC2626","#0369A1"][customers.length % 5],
+      totalSpent: total,
+      outstanding: pending,
+      lastPurchase: "Today",
+      vip: total >= 50000,
+      purchases: [purchase],
+    });
+  }
+}
+
+function sendMessage() {
+  const input = document.getElementById('wa-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  renderMessage({ out: true, text }, true);
+  showTyping();
+
+  // Simulate a short processing delay (mock AI thinking)
+  setTimeout(() => {
+    removeTyping();
+
+    const parsed = parseSaleMessage(text);
+    const total = parsed.total_amount || 0;
+    const paid = parsed.amount_paid || 0;
+    const pending = total - paid;
+    const statusEmoji = parsed.payment_status === 'paid' ? '🟢 Fully paid' : parsed.payment_status === 'partial' ? '🟡 Partial' : '🔴 Unpaid';
+    const itemStr = parsed.items.map(i => `${i.product} × ${i.quantity}`).join(', ');
+    const mainProduct = parsed.items[0];
+
+    const rows = [
+      { k: "Customer", v: parsed.customer_name },
+      { k: "Items", v: itemStr },
+      { k: "Total", v: fmt(total) },
+      { k: "Paid", v: fmt(paid) },
+      ...(pending > 0 ? [{ k: "Pending", v: fmt(pending) }] : []),
+      { k: "Status", v: statusEmoji },
+    ];
+
+    renderMessage({ out: false, card: true, data: {
+      title: "✅ Sale logged",
+      rows,
+      alert: parsed.low_stock_warning,
+      link: pending > 0 ? `Send ${fmt(pending)} payment link` : "View invoice",
+    }}, true);
+
+    // Update inventory
+    if (mainProduct) updateInventoryFromSale(mainProduct.product, mainProduct.quantity);
+
+    // Update customer ledger
+    if (total > 0) addOrUpdateCustomer(parsed.customer_name, total, paid, mainProduct?.product || "Item", mainProduct?.quantity || 1);
+
+    // Update all metrics + dashboard
+    updateLiveMetrics(total, paid, pending);
+
+    // Re-render inventory table and customer list if those panels exist
+    renderInventory();
+    renderCustomers();
+    updateDashboardCounts();
+
+    if (parsed.low_stock_warning) addAlert(parsed.low_stock_warning);
+  }, 900);
+}
+
+function fmt(n) {
+  return "₦" + Number(n).toLocaleString('en-NG');
+}
+
+function updateLiveMetrics(total, paid, pending) {
+  state.newSales += total;
+  state.newPending += pending;
+  state.newCollected += paid;
+  state.newTxCount += 1;
+
+  const update = (id, val, flash) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = val;
+    if (flash) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  };
+
+  update('snap-sales', fmt(state.newSales), true);
+  update('snap-count', state.newTxCount, false);
+  update('snap-pending', fmt(state.newPending), true);
+  update('snap-collected', fmt(state.newCollected), true);
+
+  // Also update dashboard totals
+  const newTotal = state.todaySales + state.newSales;
+  const newPend = state.todayPending + state.newPending;
+  update('d-total', fmt(newTotal), true);
+  update('d-pending', fmt(newPend), true);
+}
+
+function updateDashboardCounts() {
+  // Update low stock count
+  const lowCount = inventory.filter(i => i.stock < i.threshold).length;
+  const dLow = document.getElementById('d-lowstock');
+  if (dLow) { dLow.textContent = lowCount; dLow.classList.remove('flash'); void dLow.offsetWidth; dLow.classList.add('flash'); }
+
+  // Update low stock pill in header
+  const lowPill = document.querySelector('.pill-warn');
+  if (lowPill) lowPill.textContent = `${lowCount} low`;
+
+  // Update pending customer count
+  const owingCount = customers.filter(c => c.outstanding > 0).length;
+  const dPendSub = document.getElementById('d-pending-sub');
+  if (dPendSub) dPendSub.textContent = `${owingCount} customer${owingCount !== 1 ? 's' : ''} owe`;
+
+  // Update VIP and owe counts in customers panel
+  const vipCount = customers.filter(c => c.vip || c.totalSpent >= 50000).length;
+  const vipEl = document.getElementById('vip-count');
+  const oweEl = document.getElementById('owe-count');
+  if (vipEl) vipEl.textContent = vipCount;
+  if (oweEl) oweEl.textContent = owingCount;
+}
+
+function addAlert(msg) {
+  const box = document.getElementById('live-alerts');
+  const list = document.getElementById('alerts-list');
+  box.style.display = 'block';
+  const el = document.createElement('div');
+  el.className = 'bp-alert';
+  el.textContent = msg;
+  list.appendChild(el);
+}
+
+// ===================== DASHBOARD =====================
+function renderInventory() {
+  const tbody = document.querySelector('#inventory-table tbody');
+  tbody.innerHTML = inventory.map(item => {
+    const pct = item.stock / (item.threshold * 2);
+    const status = item.stock <= 0 ? '<span class="pill pill-danger">Critical</span>'
+      : item.stock < item.threshold ? '<span class="pill pill-warn">Low</span>'
+      : '<span class="pill pill-green">OK</span>';
+    return `<tr>
+      <td>${item.name}</td>
+      <td><strong>${item.stock}</strong> <span style="color:var(--muted); font-size:11px;">/ ${item.threshold} min</span></td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTopSellers() {
+  const sorted = [...inventory].sort((a,b) => b.sold - a.sold).slice(0, 4);
+  const max = sorted[0].sold;
+  document.getElementById('top-sellers').innerHTML = sorted.map(item => `
+    <div>
+      <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+        <span>${item.name}</span><span style="font-weight:600;">${item.sold} sold</span>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${Math.round((item.sold/max)*100)}%;"></div></div>
+    </div>
+  `).join('');
+}
+
+function renderRevenueChart() {
+  const ctx = document.getElementById('revenue-chart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: revenueLabels,
+      datasets: [{
+        data: revenueData,
+        borderColor: '#00C27A',
+        backgroundColor: 'rgba(0,194,122,0.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#00C27A',
+        pointRadius: 4,
+        tension: 0.35,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => " ₦" + ctx.raw.toLocaleString('en-NG') }
+      }},
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { grid: { color: '#F3F4F6' }, ticks: { font: { size: 11 }, callback: v => "₦" + (v/1000) + "k" } }
+      }
+    }
+  });
+}
+
+function renderCashflowChart() {
+  const ctx = document.getElementById('cashflow-chart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      datasets: [
+        { label: 'Inflow', data: [95000, 112000, 88000, 130000], backgroundColor: 'rgba(0,194,122,0.7)', borderRadius: 6 },
+        { label: 'Outflow', data: [60000, 75000, 55000, 80000], backgroundColor: 'rgba(33,15,96,0.4)', borderRadius: 6 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { size: 11 } } }, tooltip: {
+        callbacks: { label: ctx => " ₦" + ctx.raw.toLocaleString('en-NG') }
+      }},
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#F3F4F6' }, ticks: { callback: v => "₦" + (v/1000) + "k", font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// ===================== CUSTOMERS =====================
+function renderCustomers() {
+  const vipCount = customers.filter(c => c.vip || c.totalSpent >= 50000).length;
+  const oweCount = customers.filter(c => c.outstanding > 0).length;
+  document.getElementById('vip-count').textContent = vipCount;
+  document.getElementById('owe-count').textContent = oweCount;
+
+  const list = document.getElementById('customer-list');
+  list.innerHTML = customers.map(c => {
+    const isVip = c.vip || c.totalSpent >= 50000;
+    const owes = c.outstanding > 0;
+    const badges = [
+      isVip ? `<span class="pill pill-purple">👑 VIP</span>` : '',
+      owes ? `<span class="pill pill-danger">Owes ${fmt(c.outstanding)}</span>` : `<span class="pill pill-green">Settled</span>`,
+    ].join(' ');
+
+    const purchases = c.purchases.map(p => `
+      <div class="purchase-item">
+        <div><div style="font-weight:500;">${p.item}</div><div style="color:var(--muted); font-size:11px;">${p.date}</div></div>
+        <div style="text-align:right;">
+          <div style="font-weight:600;">${fmt(p.amount)}</div>
+          <div style="font-size:11px; color:${p.status==='paid'?'var(--opay-green)':'var(--warning)'};">${p.status === 'paid' ? '✓ Paid' : `₦${(p.amount - p.paid).toLocaleString()} pending`}</div>
+        </div>
+      </div>
+    `).join('');
+
+    return `<div class="customer-card" onclick="toggleCustomer('${c.id}')">
+      <div class="customer-row">
+        <div class="customer-avatar" style="background:${c.color}20; color:${c.color};">${c.initials}</div>
+        <div class="customer-info">
+          <div class="customer-name">${c.name}</div>
+          <div style="display:flex; gap:6px; margin-top:3px; flex-wrap:wrap;">${badges}</div>
+        </div>
+        <div class="customer-stats">
+          <div class="customer-amount">${fmt(c.totalSpent)}</div>
+          <div style="font-size:11px; color:var(--muted);">total spent</div>
+          <div style="font-size:11px; color:var(--muted); margin-top:1px;">Last: ${c.lastPurchase}</div>
+        </div>
+      </div>
+      <div class="customer-detail" id="detail-${c.id}">
+        <div style="font-weight:600; font-size:12px; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase; margin-bottom:8px;">Purchase history</div>
+        ${purchases}
+        ${owes ? `<button onclick="event.stopPropagation(); alert('Payment link copied! Send to ${c.name}')" style="margin-top:10px; background:var(--opay-green); color:white; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:600; cursor:pointer;">Send payment reminder</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCustomer(id) {
+  const el = document.getElementById('detail-' + id);
+  el.classList.toggle('open');
+}
+
+// ===================== AI DIGEST (Rule-based AI Engine) =====================
+function generateDigestText(totalSales, totalPending, owingCount, bestSeller, slowMover, lowStockItems) {
+  const digests = [
+    `Your fashion business is performing well this week with total sales of ${fmt(totalSales)}. ${bestSeller} continue to be your strongest revenue driver — keep your stock levels healthy here. ${slowMover} are moving slowly; a 10–15% weekend promo could help clear them before your next restock. You have ${fmt(totalPending)} outstanding across ${owingCount} customer${owingCount !== 1 ? 's' : ''} — follow up now to keep your cash flow strong.`,
+
+    `This week's numbers look solid: ${fmt(totalSales)} in total sales, with ${bestSeller} leading the way as your top performer. On the flip side, ${slowMover} haven't been moving — consider bundling them with a faster seller to shift stock. Your biggest cash flow priority right now is recovering the ${fmt(totalPending)} owed by ${owingCount} customer${owingCount !== 1 ? 's' : ''}; sending a polite OPay payment reminder today could bring that in quickly.`,
+
+    `Sales this week reached ${fmt(totalSales)}, and ${bestSeller} are clearly your customers' favourite — make sure you don't run out. ${slowMover} are your slow mover this cycle; a small discount or a "buy 2 get 10% off" offer could help. You currently have ${fmt(totalPending)} in unpaid balances across ${owingCount} customer${owingCount !== 1 ? 's' : ''} — chasing the largest balance first will have the most immediate impact on your Naira in hand.`,
+  ];
+
+  // Pick a different digest each time so re-generating feels fresh
+  return digests[Math.floor(Math.random() * digests.length)];
+}
+
+function regenerateDigest() {
+  const btn = document.getElementById('regen-btn');
+  const icon = document.getElementById('regen-icon');
+  btn.disabled = true;
+  icon.innerHTML = '<span class="spinner"></span>';
+
+  const totalSales = state.todaySales + state.newSales;
+  const totalPending = state.todayPending + state.newPending;
+  const owingCount = customers.filter(c => c.outstanding > 0).length;
+  const lowStockItems = inventory.filter(i => i.stock < i.threshold).map(i => i.name).join(', ');
+  const bestSeller = [...inventory].sort((a,b) => b.sold - a.sold)[0].name;
+  const slowMover = [...inventory].sort((a,b) => a.sold - b.sold)[0].name;
+
+  // Simulate a short "thinking" delay so it feels responsive
+  setTimeout(() => {
+    const text = generateDigestText(totalSales, totalPending, owingCount, bestSeller, slowMover, lowStockItems);
+    document.getElementById('digest-body').textContent = text;
+    document.getElementById('di-best').textContent = bestSeller;
+    document.getElementById('di-slow').textContent = slowMover;
+    document.getElementById('di-cash').textContent = fmt(totalPending) + " owed";
+
+    btn.disabled = false;
+    icon.textContent = '✨';
+  }, 1200);
+}
+
+// ===================== INIT =====================
+function init() {
+  // Seed WhatsApp
+  seedMessages.forEach(m => renderMessage(m, false));
+
+  // Render dashboard
+  renderInventory();
+  renderTopSellers();
+  renderRevenueChart();
+  renderCashflowChart();
+  renderCustomers();
+
+  // Digest date
+  document.getElementById('digest-date').textContent = 'Week of ' + new Date().toLocaleDateString('en-NG', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+init();
+</script>
+</body>
+</html>
