@@ -154,26 +154,26 @@ A clean React-based dashboard gives merchants:
 
 WhatsApp Message
 
-      ↓
+      ⬇️
       
 Gemini AI Parser
 
-      ↓
+      ⬇️
 Structured JSON Order
 
-      ↓
+      ⬇️
 Supabase DB Update
 
-      ↓
+      ⬇️
 Inventory Deduction + Order Created
 
-      ↓
+      ⬇️
 OPay Webhook Payment Match
 
-      ↓
+      ⬇️
 Order Marked as Settled
 
-      ↓
+      ⬇️
 Dashboard Analytics Updated
 
 
