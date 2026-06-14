@@ -66,26 +66,11 @@ Just intelligence added to what already exists.
 1.Order Capture (WhatsApp → AI Parsing)
 
 
-Customer messages are ingested and processed using Google Gemini 1.5 Flash, which converts unstructured text (including Pidgin English and informal phrasing) into structured JSON:
-
-
-{
-  "customer_name": "Amina",
-  
-  "product": "Hair bundles",
-  
-  "quantity": 2,
-  
-  "delivery_address": "Surulere, Lagos",
-  
-  "total_amount": 25000
-}
-
-
-
+Customer messages are ingested and processed using Google Gemini 1.5 Flash, which converts unstructured text (including Pidgin English and informal phrasing)
 
 
 2.Backend Processing (Database Sync)
+
 
 Structured data is stored in Supabase (PostgreSQL):
 
@@ -98,10 +83,8 @@ Structured data is stored in Supabase (PostgreSQL):
 
 
 
-
 3.Payment Reconciliation (OPay Webhooks)
 
-   
 BizPilot listens for real-time OPay instant transfer webhooks:
 
 
@@ -170,18 +153,26 @@ A clean React-based dashboard gives merchants:
 
 
 WhatsApp Message
+
       ↓
+      
 Gemini AI Parser
+
       ↓
 Structured JSON Order
+
       ↓
 Supabase DB Update
+
       ↓
 Inventory Deduction + Order Created
+
       ↓
 OPay Webhook Payment Match
+
       ↓
 Order Marked as Settled
+
       ↓
 Dashboard Analytics Updated
 
