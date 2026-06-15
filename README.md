@@ -1,9 +1,11 @@
 ## 🚀 BizPilot
 
+<img width="1362" height="646" alt="image" src="https://github.com/user-attachments/assets/f7035c1d-c0c8-475c-86fc-d637ada4a957" />
+
 
 An intelligent, zero-friction business operating system for social commerce merchants in Africa.
-BizPilot turns unstructured WhatsApp conversations and OPay transaction alerts into a fully automated backend system eliminating manual bookkeeping and enabling real-time business intelligence for micro-retailers.
 
+BizPilot turns unstructured WhatsApp conversations and OPay transaction alerts into a fully automated backend system eliminating manual bookkeeping and enabling real-time business intelligence for micro-retailers.
 
 ---
 
